@@ -131,9 +131,10 @@ public class DriverMode extends LinearOpMode {
             linear2.setPower(gamepad2.left_stick_y);
 
             //claw (D2) - hold
+            //closed position = 0, open = 0.8
             claw.setPosition(gamepad2.a ? 0 : 0.8);
             //intake arm (D1) - switch
-
+            //down position = 0, up = 0.94
             intake_arm.setPosition(gamepad1.right_trigger > 0 ? 0 : 0.94);
 
             //intake motors + aligners (D1) - hold

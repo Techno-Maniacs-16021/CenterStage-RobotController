@@ -20,7 +20,7 @@ public class OpenCVExample extends OpMode {
     public void loop() {
         //very important step do not skip!
         telemetry.addData("Status", "Violating...");
-        //telemetry.addData("Go To", webcam.getPosition());
+        telemetry.addData("Go To", webcam.getPosition());
         telemetry.update();
     }
 

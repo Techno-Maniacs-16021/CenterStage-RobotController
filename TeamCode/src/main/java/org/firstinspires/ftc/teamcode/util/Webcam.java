@@ -20,7 +20,7 @@ public class Webcam {
         //initialize you webcam object
         webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
         //initialize our pipeline
-        //pipeline = new SleeveDetection();
+        pipeline = new PropDetection();
         //set the pipeline accordingly
         webcam.setPipeline(pipeline);
         //to view the camera on the scrcpy
@@ -42,7 +42,7 @@ public class Webcam {
 
     }
 
-    /*public SleeveDetection.ParkingPosition getPosition() {
-        return ((SleeveDetection) pipeline).getPosition();
-    }*/
+    public PropDetection.ParkingPosition getPosition() {
+        return ((PropDetection) pipeline).getPosition();
+    }
 }

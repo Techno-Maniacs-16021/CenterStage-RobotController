@@ -65,25 +65,26 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 public class DriverMode extends LinearOpMode {
 
     // Declare OpMode members.
-        ServoImplEx  left_tilt,right_tilt,swivel;
-        CRServoImplEx left_arm, right_arm;
-        CRServo left_intake, right_intake;
-        DcMotor vertical_motor, horizontal_motor;
-        AnalogInput rightArmPosition,leftArmPosition;
+        CRServo left_aligner, right_aligner;
+        DcMotor linear1, linear2, intake1, intake2;
+        AnalogInput claw, intake_arm;
 
+        /*
+        Driver 1 tasks:
+        - driving (joysticks) - hold
+        - motor intake (a,b) - hold
+        - intake arm (rt trig) - switch
+        Driver 2 tasks:
+        - claw (b) - switch
+        - linear slides (dpad up/down) - hold
+        - aligners (a) - switch
+
+         */
         private ElapsedTime runtime = new ElapsedTime();
-        private ElapsedTime armCooldown = new ElapsedTime();
-        private ElapsedTime wristCooldown = new ElapsedTime();
-        private ElapsedTime verticalTrack = new ElapsedTime();
-        private ElapsedTime horizontalTrack = new ElapsedTime();
-        private ElapsedTime pidCooldown = new ElapsedTime();
-        private ElapsedTime armTrack = new ElapsedTime();
-        double armPosition=0;
+
+        double armPosition = 0;
+        double clawPosition = 0;
         double drivePower = 1;
-        double wristPosition=0.32;
-        public static double vKp=0,vKi=0,vKd=0,vTarget=0,vIntSum=0,vLastError=0;
-        public static double hKp=0,hKi=0,hKd=0,hTarget=0,hIntSum=0,hLastError=0;
-        public static double kp=0.0032,kd=0.0001,ki=0,kf=0.21,targetAngle=-20,intSum=0,lastError=0;
 
     @Override
     public void runOpMode() {
@@ -92,50 +93,46 @@ public class DriverMode extends LinearOpMode {
 
 
             //Hardware declarations{
-            left_arm = hardwareMap.get(CRServoImplEx.class,"LA");
-            right_arm = hardwareMap.get(CRServoImplEx.class, "RA");
-            left_tilt = hardwareMap.get(ServoImplEx.class,"LT");
-            right_tilt = hardwareMap.get(ServoImplEx.class, "RT");
-            swivel = hardwareMap.get(ServoImplEx.class, "swivel");
-            left_intake = hardwareMap.get(CRServo.class,"LI");
-            right_intake = hardwareMap.get(CRServo.class,"RI");
-            vertical_motor = hardwareMap.get(DcMotor.class,"V");
-            horizontal_motor = hardwareMap.get(DcMotor.class,"H");
-            rightArmPosition = hardwareMap.get(AnalogInput.class,"rArmPos");
-            leftArmPosition = hardwareMap.get(AnalogInput.class,"lArmPos");
+            left_aligner = hardwareMap.get(CRServo.class,"LA");
+            right_aligner = hardwareMap.get(CRServo.class,"RA");
+            intake1 = hardwareMap.get(DcMotor.class,"I1");
+            intake2 = hardwareMap.get(DcMotor.class,"I2");
+            linear1 = hardwareMap.get(DcMotor.class,"L1");
+            linear2 = hardwareMap.get(DcMotor.class,"L2");
+            claw = hardwareMap.get(AnalogInput.class,"claw");
+            intake_arm = hardwareMap.get(AnalogInput.class,"intake");
             //}
 
             //Servo Pwm Range Declaration{
-            left_arm.setPwmRange(new PwmControl.PwmRange(500,2500));
-            right_arm.setPwmRange(new PwmControl.PwmRange(500,2500));
-            left_tilt.setPwmRange(new PwmControl.PwmRange(510,2490));
-            right_tilt.setPwmRange(new PwmControl.PwmRange(510,2490));
-            swivel.setPwmRange(new PwmControl.PwmRange(510,2490));
+        //.setPwmRange(new PwmControl.PwmRange(500,2500));
             //}
 
             //Reversing Things{
-            left_tilt.setDirection(ServoImplEx.Direction.REVERSE);
-            right_arm.setDirection(CRServoImplEx.Direction.REVERSE);
-            left_intake.setDirection(CRServo.Direction.REVERSE);
-            vertical_motor.setDirection(DcMotorSimple.Direction.REVERSE);
-            horizontal_motor.setDirection(DcMotorSimple.Direction.REVERSE);
+            //.setDirection(DcMotorSimple.Direction.REVERSE);
             //}
 
             //Zero Power Behavior{
-            horizontal_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            vertical_motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            linear1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            linear2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             //}
             //Servo Position Reset{
-            left_tilt.setPosition(0.32);
-            right_tilt.setPosition(0.32);
-            swivel.setPosition(0);
+            //.setPosition(0);
 
             //}
 
-            vertical_motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            vertical_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            vertical_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            vertical_motor.setTargetPosition(0);
+            linear1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            linear2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            linear1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            linear2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            linear1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            linear2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            linear1.setTargetPosition(0);
+            linear2.setTargetPosition(0);
 
 
 
@@ -146,97 +143,66 @@ public class DriverMode extends LinearOpMode {
         runtime.reset();
         while (opModeIsActive()) {
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-            double leftArmAngle = ((3.152 -leftArmPosition.getVoltage()) /3.3) * 360;
-            double rightArmAngle = (rightArmPosition.getVoltage() /3.3) * 360;
-            double armAngle = (leftArmAngle+rightArmAngle)/2;
 
-            if(targetAngle==-20&&armAngle<90){
-                left_arm.setPower(0);
-                right_arm.setPower(0);
-            }
-            else if(Math.abs(targetAngle-armAngle)>3){
-                double pos = armAngle;
-                double error = targetAngle-pos;
-                double derivative = (error-lastError)/armTrack.seconds();
-                intSum = intSum + (error*armTrack.seconds());
-                if (intSum > 100) {
-                    intSum = 100;
-                }
-                if (intSum < -100) {
-                    intSum = -100;
-                }
-                double out = (kf*Math.cos(Math.toRadians(armAngle-58)))+(kp*error)+(ki*intSum)+(kd*derivative);
-                left_arm.setPower(out);
-                right_arm.setPower(out);
-                lastError=error;
-                armTrack.reset();
-            }
-            if(gamepad1.left_trigger>0)targetAngle = -20;
-            else if(gamepad1.y&&gamepad1.right_trigger>0)targetAngle=80;
-            else if(gamepad1.right_trigger>0)targetAngle=160;
+            //linear slides (D2) - hold
+
             if(gamepad2.dpad_up){
-                vertical_motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                vertical_motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                linear2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                linear1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                linear2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                linear1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             }
-            if(Math.abs(vTarget-vertical_motor.getCurrentPosition())>5){
-                double pos = vertical_motor.getCurrentPosition();
-                double error = vTarget-pos;
-                double derivative = (error-vLastError)/verticalTrack.seconds();
-                vIntSum = vIntSum + (error*verticalTrack.seconds());
-                double out = (vKp*error)+(vKi*vIntSum)+(vKd*derivative);
-                vertical_motor.setPower(out);
-                vLastError=error;
-                verticalTrack.reset();
+
+            //claw (D2) - switch
+
+            if(gamepad2.b && clawPosition == 0) {
+                clawPosition = 1;
+                //claw.setPosition(clawPosition);
             }
-            if(gamepad1.left_stick_y>0) vTarget = 5000;
-            else if(gamepad1.left_stick_y<0) vTarget = 0;
-            if(gamepad1.left_stick_x>0) hTarget = 1000;
-            else if(gamepad1.left_stick_x<0) hTarget = 0;
-            if(gamepad1.right_trigger>0&&armCooldown.time()>=.075){
-                //armPosition+=0.05*gamepad1.right_trigger;
-                armPosition=0.1;
-                left_arm.setPwmEnable();
-                right_arm.setPwmEnable();
-                armCooldown.reset();
+            else if (gamepad2.b && clawPosition == 1) {
+                clawPosition = 0;
+                //claw.setPosition(clawPosition);
             }
-            else if(gamepad1.left_trigger>0&&armCooldown.time()>=.075){
-                //armPosition-=0.05*gamepad1.left_trigger;
-                armPosition=0;
-                left_arm.setPwmDisable();
-                right_arm.setPwmDisable();
-                armCooldown.reset();
+
+            //intake arm (D1) - switch
+
+            if(gamepad1.right_trigger > 0 && armPosition == 0) {
+                armPosition = 1;
+                //intake_arm.setPosition(armPosition);
             }
-                if(gamepad1.dpad_left&&wristCooldown.time()>0.01) {
-                wristPosition += 0.01;
-                wristCooldown.reset();
+            else if(gamepad1.right_trigger > 0 && armPosition == 1) {
+                armPosition = 0;
+                //intake_arm.setPosition(armPosition);
             }
-            else if(armAngle>100){
-                wristPosition=0.39;
+
+            //aligners (D2) - switch
+
+            if(gamepad2.a && left_aligner.getPower() == 0) {
+                left_aligner.setPower(1);
+                right_aligner.setPower(1);
             }
-            else if(gamepad1.right_bumper){
-                wristPosition=0.01;
+            else if (gamepad2.a && left_aligner.getPower() == 1) {
+                left_aligner.setPower(0);
+                right_aligner.setPower(0);
             }
-            else if(gamepad1.left_bumper){
-                wristPosition=0.32;
+
+            //intake motors (D1) - hold
+
+            if (gamepad1.a) {
+                intake1.setPower(1);
+                intake2.setPower(1);
             }
-            if(targetAngle<100)swivel.setPosition(0);
-            else if(armAngle>100)swivel.setPosition(.6);
-            vertical_motor.setTargetPosition((int)vTarget);
-            horizontal_motor.setPower(gamepad1.left_stick_x);
-            left_tilt.setPosition(wristPosition);
-            right_tilt.setPosition(wristPosition);
-            if(gamepad1.a) {
-                left_intake.setPower(1);
-                right_intake.setPower(1);
-            }
-            else if(gamepad1.b){
-                left_intake.setPower(-1);
-                right_intake.setPower(-1);
+            else if (gamepad1.b) {
+                intake1.setPower(-1);
+                intake2.setPower(-1);
             }
             else {
-                left_intake.setPower(0);
-                right_intake.setPower(0);
+                intake1.setPower(0);
+                intake2.setPower(0);
             }
+
+            //drive power
+
             if(gamepad2.left_trigger>0.5 && gamepad2.right_trigger<0.5){
 
                 drivePower=0.8;
@@ -247,20 +213,22 @@ public class DriverMode extends LinearOpMode {
             }else{
                 drivePower=1;
             }
+
+            //driving (D1) - hold
+
             drive.setDrivePowers(new PoseVelocity2d(
                     new Vector2d(
-                            -gamepad1.left_stick_y,
-                            -gamepad1.left_stick_x
+                            -gamepad1.left_stick_y * drivePower,
+                            -gamepad1.left_stick_x * drivePower
                     ),
-                    -gamepad1.right_stick_x
+                    -gamepad1.right_stick_x * drivePower
             ));
 
             drive.updatePoseEstimate();
 
             PoseVelocity2d poseEstimate = drive.updatePoseEstimate();
-            telemetry.addData("wristPosition: ",wristPosition);
             telemetry.addData("power multiplier: ",drivePower);
-            telemetry.addLine("Running: TechnoManiacs Operating System - V0.5");
+            telemetry.addLine("Running: TechnoManiacs CenterStage Operating System - V0.1");
 
             telemetry.update();
         }

@@ -64,6 +64,11 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 @TeleOp
 public class DriverMode extends LinearOpMode {
 
+    // Config
+
+        public double clawTarget = 1;
+        public double armTarget = 1;
+
     // Declare OpMode members.
         CRServo left_aligner, right_aligner;
         DcMotor linear1, linear2, intake1, intake2;
@@ -78,7 +83,6 @@ public class DriverMode extends LinearOpMode {
         - claw (b) - switch
         - linear slides (dpad up/down) - hold
         - aligners (a) - switch
-
          */
         private ElapsedTime runtime = new ElapsedTime();
 
@@ -156,10 +160,10 @@ public class DriverMode extends LinearOpMode {
             //claw (D2) - switch
 
             if(gamepad2.b && clawPosition == 0) {
-                clawPosition = 1;
+                clawPosition = clawTarget;
                 //claw.setPosition(clawPosition);
             }
-            else if (gamepad2.b && clawPosition == 1) {
+            else if (gamepad2.b && clawPosition == clawTarget) {
                 clawPosition = 0;
                 //claw.setPosition(clawPosition);
             }
@@ -167,10 +171,10 @@ public class DriverMode extends LinearOpMode {
             //intake arm (D1) - switch
 
             if(gamepad1.right_trigger > 0 && armPosition == 0) {
-                armPosition = 1;
+                armPosition = armTarget;
                 //intake_arm.setPosition(armPosition);
             }
-            else if(gamepad1.right_trigger > 0 && armPosition == 1) {
+            else if(gamepad1.right_trigger > 0 && armPosition == armTarget) {
                 armPosition = 0;
                 //intake_arm.setPosition(armPosition);
             }

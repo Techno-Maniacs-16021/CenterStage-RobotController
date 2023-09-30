@@ -42,6 +42,7 @@ import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -66,28 +67,21 @@ public class DriverMode extends LinearOpMode {
 
     // Config
 
-        public double clawTarget = 1;
-        public double armTarget = 1;
-
     // Declare OpMode members.
         CRServo left_aligner, right_aligner;
         DcMotor linear1, linear2, intake1, intake2;
-        AnalogInput claw, intake_arm;
+        Servo claw, intake_arm;
 
         /*
         Driver 1 tasks:
         - driving (joysticks) - hold
-        - motor intake (a,b) - hold
-        - intake arm (rt trig) - switch
+        - motor intake + aligners (a,b) - hold
+        - intake arm (rt trig) - hold
         Driver 2 tasks:
-        - claw (b) - switch
-        - linear slides (dpad up/down) - hold
-        - aligners (a) - switch
+        - claw (a) - hold
+        - linear slides (joysticks) - hold
          */
         private ElapsedTime runtime = new ElapsedTime();
-
-        double armPosition = 0;
-        double clawPosition = 0;
         double drivePower = 1;
 
     @Override
@@ -95,6 +89,7 @@ public class DriverMode extends LinearOpMode {
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
+            boolean newStart = true;
 
             //Hardware declarations{
             left_aligner = hardwareMap.get(CRServo.class,"LA");
@@ -103,40 +98,23 @@ public class DriverMode extends LinearOpMode {
             intake2 = hardwareMap.get(DcMotor.class,"I2");
             linear1 = hardwareMap.get(DcMotor.class,"L1");
             linear2 = hardwareMap.get(DcMotor.class,"L2");
-            claw = hardwareMap.get(AnalogInput.class,"claw");
-            intake_arm = hardwareMap.get(AnalogInput.class,"intake");
-            //}
-
-            //Servo Pwm Range Declaration{
-        //.setPwmRange(new PwmControl.PwmRange(500,2500));
+            claw = hardwareMap.get(Servo.class,"claw");
+            intake_arm = hardwareMap.get(Servo.class,"intake");
             //}
 
             //Reversing Things{
-            //.setDirection(DcMotorSimple.Direction.REVERSE);
+            intake2.setDirection(DcMotor.Direction.REVERSE);
+            linear1.setDirection(DcMotor.Direction.REVERSE);
             //}
 
             //Zero Power Behavior{
             linear1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             linear2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            intake1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-            intake2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
             //}
             //Servo Position Reset{
-            //.setPosition(0);
-
+            claw.setPosition(0.75);
+            intake_arm.setPosition(0);
             //}
-
-            linear1.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            linear2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-            linear1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            linear2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-            linear1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            linear2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-            linear1.setTargetPosition(0);
-            linear2.setTargetPosition(0);
 
 
 
@@ -149,60 +127,34 @@ public class DriverMode extends LinearOpMode {
             telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
             //linear slides (D2) - hold
+            linear1.setPower(gamepad2.left_stick_y);
+            linear2.setPower(gamepad2.left_stick_y);
 
-            if(gamepad2.dpad_up){
-                linear2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                linear1.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                linear2.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                linear1.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            }
-
-            //claw (D2) - switch
-
-            if(gamepad2.b && clawPosition == 0) {
-                clawPosition = clawTarget;
-                //claw.setPosition(clawPosition);
-            }
-            else if (gamepad2.b && clawPosition == clawTarget) {
-                clawPosition = 0;
-                //claw.setPosition(clawPosition);
-            }
-
+            //claw (D2) - hold
+            claw.setPosition(gamepad2.a ? 0 : 0.8);
             //intake arm (D1) - switch
 
-            if(gamepad1.right_trigger > 0 && armPosition == 0) {
-                armPosition = armTarget;
-                //intake_arm.setPosition(armPosition);
-            }
-            else if(gamepad1.right_trigger > 0 && armPosition == armTarget) {
-                armPosition = 0;
-                //intake_arm.setPosition(armPosition);
-            }
+            intake_arm.setPosition(gamepad1.right_trigger > 0 ? 0 : 0.94);
 
-            //aligners (D2) - switch
-
-            if(gamepad2.a && left_aligner.getPower() == 0) {
-                left_aligner.setPower(1);
-                right_aligner.setPower(1);
-            }
-            else if (gamepad2.a && left_aligner.getPower() == 1) {
-                left_aligner.setPower(0);
-                right_aligner.setPower(0);
-            }
-
-            //intake motors (D1) - hold
+            //intake motors + aligners (D1) - hold
 
             if (gamepad1.a) {
                 intake1.setPower(1);
                 intake2.setPower(1);
+                left_aligner.setPower(1);
+                right_aligner.setPower(1);
             }
             else if (gamepad1.b) {
                 intake1.setPower(-1);
                 intake2.setPower(-1);
+                left_aligner.setPower(-1);
+                right_aligner.setPower(-1);
             }
             else {
                 intake1.setPower(0);
                 intake2.setPower(0);
+                right_aligner.setPower(0);
+                left_aligner.setPower(0);
             }
 
             //drive power

@@ -127,7 +127,7 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         if(gamepad1.left_bumper)claw_angler.setPosition(1);
         else if(gamepad1.right_bumper){
             claw_angler.setPosition(0);
-            claw.setPosition(0.5);
+            claw.setPosition(0.3);
         }
         if(gamepad1.x)claw.setPosition(1);
         else if(gamepad1.y)claw.setPosition(0);

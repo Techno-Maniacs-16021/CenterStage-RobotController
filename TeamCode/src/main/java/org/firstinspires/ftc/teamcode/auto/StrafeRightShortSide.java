@@ -12,18 +12,15 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
  */
 @Autonomous
 @Config
-public class StrafeRight extends LinearOpMode {
+public class StrafeRightShortSide extends LinearOpMode {
 
     public static double DISTANCE = 24; //inches
 
     @Override
     public void runOpMode() throws InterruptedException {
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(0,0,0));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(12,64,0));
 
         waitForStart();
-
-        if (isStopRequested()) return;
-
 
         drive.leftBack.setPower(-1);
         drive.leftFront.setPower(1);

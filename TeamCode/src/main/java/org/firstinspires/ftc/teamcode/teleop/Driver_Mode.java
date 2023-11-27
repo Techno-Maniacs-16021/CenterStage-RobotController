@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import static android.os.SystemClock.sleep;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
-
-import android.widget.HorizontalScrollView;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
@@ -17,20 +14,18 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
 @Config
 @TeleOp
-public class Rick_Driver_Mode extends OpMode
+public class Driver_Mode extends OpMode
 {
     /////////////////////////////////////////////
     ServoImplEx intake_arm,claw,claw_angler;
@@ -43,8 +38,8 @@ public class Rick_Driver_Mode extends OpMode
     public static double clawPosition,clawAngle,speedMultiplier;
     public static double p,i,d,f,Target;
     private PIDController Controller;
-    boolean intaked;
-    public static int INTIAL_OFFSET,PIXEL_LAYER;
+    boolean intaked,outakeInited,outakeActionComplete;
+    public static int INTIAL_OFFSET,PIXEL_LAYER,ALLOWED_ERROR;
     public double slidePower;
     /////////////////////////////////////////////
     @Override
@@ -72,8 +67,8 @@ public class Rick_Driver_Mode extends OpMode
         claw.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw_angler.setPwmRange(new PwmControl.PwmRange(510,2490));
 ////////////////////////HARDWARE REVERSING///////////
-left_slides.setDirection(DcMotorSimple.Direction.REVERSE);
-right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        left_slides.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
 ////////////////////////MOTOR BRAKE BEHAVIOR/////////
         left_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         right_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -91,7 +86,7 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
 /////////////////////////////////////////////////////
         p=0;i=0;d=0;f=0;Target = 0;speedMultiplier=1;
         INTIAL_OFFSET = 0;PIXEL_LAYER= 0;
-        intaked = false;
+        intaked = false; outakeInited = false;
 
     }
     @Override
@@ -109,20 +104,20 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         int Pos = (right_slides.getCurrentPosition()+left_slides.getCurrentPosition())/2;
         double PID = Controller.calculate(Pos,Target);
         double Power = PID+f;
-            left_slides.setPower(Power);
-            right_slides.setPower(Power);
+        left_slides.setPower(Power);
+        right_slides.setPower(Power);
 //INTAKE
-        if(gamepad1.a){
-            left_intake.setPower(1);
-            right_intake.setPower(1);
+        if(gamepad1.right_trigger>0){
+            left_intake.setPower(gamepad1.right_stick_x);
+            right_intake.setPower(gamepad1.right_stick_x);
             left_aligner.setPower(1);
             right_aligner.setPower(1);
         }
         else if (gamepad1.b){
             left_intake.setPower(-1);
             right_intake.setPower(-1);
-            left_aligner.setPower(0);
-            right_aligner.setPower(0);
+            left_aligner.setPower(1);
+            right_aligner.setPower(-1);
         }
         else {
             left_intake.setPower(0);
@@ -132,13 +127,17 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         }
         if(gamepad1.dpad_up)intake_arm.setPosition(1);
         else if(gamepad1.dpad_down)intake_arm.setPosition(0);
-//Slides
-        left_slides.setPower(slidePower);
-        right_slides.setPower(slidePower);
-        if(gamepad1.right_trigger!=0) slidePower = gamepad1.right_trigger;
-        else if(gamepad1.left_trigger!=0) slidePower = -gamepad1.left_trigger;
-        else slidePower = 0;
-//Outtake
+//OUTTAKE
+//>Slides
+        if(gamepad1.a&&!outakeInited)outakeInited=true;
+        if(outakeInited){
+            if(Target==0) Target = INTIAL_OFFSET;
+            else Target+=PIXEL_LAYER;
+            if(getError(Pos,Target)<=ALLOWED_ERROR) outakeInited = false;
+        }
+//>Claw
+        if(Target<INTIAL_OFFSET)claw_angler.setPosition(0);
+        else if(Target>=INTIAL_OFFSET&&getError(Pos,Target)<=ALLOWED_ERROR)claw_angler.setPosition(1);
         if(gamepad1.left_bumper)claw_angler.setPosition(1);
         else if(gamepad1.right_bumper){
             claw_angler.setPosition(0);
@@ -148,13 +147,13 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         if(gamepad1.x)claw.setPosition(1);
         else if(gamepad1.y)claw.setPosition(0);
 ////////////////////////DRIVE LOGIC//////////////////
-
+        speedMultiplier = 1-gamepad1.left_trigger;
         drive.setDrivePowers(new PoseVelocity2d(
                 new Vector2d(
-                        -gamepad1.left_stick_y ,
-                        -gamepad1.left_stick_x
+                        -gamepad1.left_stick_y*speedMultiplier ,
+                        -gamepad1.left_stick_x*speedMultiplier
                 ),
-                -gamepad1.right_stick_x
+                -gamepad1.right_stick_x*speedMultiplier
         ));
 
         drive.updatePoseEstimate();
@@ -173,5 +172,8 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
     public void stop(){
 
     }
-
+    public static int getError(int current, double target){
+        int error = Math.abs((int)target-current);
+        return error;
+    }
 }

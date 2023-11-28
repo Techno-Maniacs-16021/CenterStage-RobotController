@@ -31,6 +31,7 @@ import org.firstinspires.ftc.teamcode.tfrec.utils.BorderedText;
 import org.firstinspires.ftc.teamcode.tfrec.utils.ImageUtils;
 import org.firstinspires.ftc.teamcode.tfrec.views.CameraConnectionFragment;
 import org.firstinspires.ftc.teamcode.tfrec.views.LegacyCameraConnectionFragment;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 import java.nio.ByteBuffer;
 import java.util.List;

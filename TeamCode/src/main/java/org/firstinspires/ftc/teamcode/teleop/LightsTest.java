@@ -47,6 +47,7 @@ public class LightsTest extends OpMode
 
     Telemetry.Item patternName;
     Telemetry.Item display;
+
     SampleRevBlinkinLedDriver.DisplayKind displayKind;
     Deadline ledCycleDeadline;
     Deadline gamepadRateLimit;
@@ -67,12 +68,13 @@ public class LightsTest extends OpMode
 
         displayKind = SampleRevBlinkinLedDriver.DisplayKind.MANUAL;
 
-        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "blinkin");
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
         pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
         blinkinLedDriver.setPattern(pattern);
 
         display = telemetry.addData("Display Kind: ", displayKind.toString());
         patternName = telemetry.addData("Pattern: ", pattern.toString());
+        telemetry.update();
 
         ledCycleDeadline = new Deadline(LED_PERIOD, TimeUnit.SECONDS);
         gamepadRateLimit = new Deadline(GAMEPAD_LOCKOUT, TimeUnit.MILLISECONDS);
@@ -99,13 +101,8 @@ public class LightsTest extends OpMode
         ));
 
         drive.updatePoseEstimate();
-        telemetry.addLine("Running: TechnoManiacs CenterStage Operating System - V0.1");
 
 ////////////////////////TELEMETRY////////////////////
-        telemetry.addData("loop time: ",loopTime.time());
-
-        loopTime.reset();
-        telemetry.update();
 
 /////////////////////////LED BLINKIN/////////////////////
         handleGamepad();
@@ -151,7 +148,7 @@ public class LightsTest extends OpMode
             displayPattern();
             gamepadRateLimit.reset();
         } else if ((displayKind == SampleRevBlinkinLedDriver.DisplayKind.MANUAL) && (gamepad1.x)) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_OCEAN_PALETTE;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_NO_BLENDING;
             displayPattern();
             gamepadRateLimit.reset();
         } else if ((displayKind == SampleRevBlinkinLedDriver.DisplayKind.MANUAL) && (gamepad1.y)) {

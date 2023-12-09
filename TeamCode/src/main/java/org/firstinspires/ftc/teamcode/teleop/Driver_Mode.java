@@ -51,7 +51,7 @@ public class Driver_Mode extends OpMode
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
         claw_angler = hardwareMap.get(ServoImplEx.class,"CA");
 
-        aligner = hardwareMap.get(CRServo.class,"AL");
+        aligner = hardwareMap.get(CRServo.class,"Aligner");
 
         claw_Position = hardwareMap.get(AnalogInput.class,"Claw Pos");
         claw_Angle = hardwareMap.get(AnalogInput.class,"Claw Angle");

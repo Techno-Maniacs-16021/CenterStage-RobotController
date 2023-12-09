@@ -29,7 +29,7 @@ public class Driver_Mode extends OpMode
 {
     /////////////////////////////////////////////
     ServoImplEx intake_arm,claw,claw_angler;
-    CRServo left_aligner, right_aligner;
+    CRServo aligner;
     DcMotorEx left_slides,right_slides,left_intake,right_intake;
     AnalogInput claw_Position, claw_Angle;
     /////////////////////////////////////////////
@@ -51,8 +51,7 @@ public class Driver_Mode extends OpMode
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
         claw_angler = hardwareMap.get(ServoImplEx.class,"CA");
 
-        left_aligner = hardwareMap.get(CRServo.class,"LA");
-        right_aligner = hardwareMap.get(CRServo.class,"RA");
+        aligner = hardwareMap.get(CRServo.class,"AL");
 
         claw_Position = hardwareMap.get(AnalogInput.class,"Claw Pos");
         claw_Angle = hardwareMap.get(AnalogInput.class,"Claw Angle");
@@ -110,20 +109,17 @@ public class Driver_Mode extends OpMode
         if(gamepad1.right_trigger>0){
             left_intake.setPower(gamepad1.right_stick_x);
             right_intake.setPower(gamepad1.right_stick_x);
-            left_aligner.setPower(1);
-            right_aligner.setPower(1);
+            aligner.setPower(1);
         }
         else if (gamepad1.b){
             left_intake.setPower(-1);
             right_intake.setPower(-1);
-            left_aligner.setPower(1);
-            right_aligner.setPower(-1);
+            aligner.setPower(1);
         }
         else {
             left_intake.setPower(0);
             right_intake.setPower(0);
-            left_aligner.setPower(0);
-            right_aligner.setPower(0);
+            aligner.setPower(0);
         }
         if(gamepad1.dpad_up)intake_arm.setPosition(1);
         else if(gamepad1.dpad_down)intake_arm.setPosition(0);

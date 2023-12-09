@@ -35,7 +35,7 @@ public class LightsTest extends OpMode
     /*
      * Change the pattern every 10 seconds in AUTO mode.
      */
-    private final static int LED_PERIOD = 10;
+    private final static int LED_PERIOD = 3;
 
     /*
      * Rate limit gamepad button presses to every 500ms.
@@ -167,11 +167,16 @@ public class LightsTest extends OpMode
         this.displayKind = displayKind;
         display.setValue(displayKind.toString());
     }
-
     protected void doAutoDisplay()
     {
         if (ledCycleDeadline.hasExpired()) {
-            pattern = pattern.next();
+            if (pattern == RevBlinkinLedDriver.BlinkinPattern.AQUA) {
+                pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
+            }
+            else {
+                pattern = RevBlinkinLedDriver.BlinkinPattern.AQUA;
+            }
+            //pattern = pattern.next();
             displayPattern();
             ledCycleDeadline.reset();
         }

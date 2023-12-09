@@ -150,7 +150,16 @@ public class LightsTest extends OpMode
             pattern = pattern.next();
             displayPattern();
             gamepadRateLimit.reset();
+        } else if ((displayKind == SampleRevBlinkinLedDriver.DisplayKind.MANUAL) && (gamepad1.x)) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.COLOR_WAVES_OCEAN_PALETTE;
+            displayPattern();
+            gamepadRateLimit.reset();
+        } else if ((displayKind == SampleRevBlinkinLedDriver.DisplayKind.MANUAL) && (gamepad1.y)) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.CP1_2_SPARKLE_1_ON_2;
+            displayPattern();
+            gamepadRateLimit.reset();
         }
+
     }
 
     protected void setDisplayKind(SampleRevBlinkinLedDriver.DisplayKind displayKind)

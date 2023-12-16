@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.tuning;
 
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.reflection.ReflectionConfig;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.ftc.AngularRampLogger;
 import com.acmerobotics.roadrunner.ftc.DriveType;
@@ -157,6 +159,17 @@ public final class TuningOpModes {
         manager.register(metaForClass(SplineTest.class), SplineTest.class);
         manager.register(metaForClass(LocalizationTest.class), LocalizationTest.class);
 
-
+        FtcDashboard.getInstance().withConfigRoot(configRoot -> {
+            for (Class<?> c : Arrays.asList(
+                    AngularRampLogger.class,
+                    ForwardRampLogger.class,
+                    LateralRampLogger.class,
+                    ManualFeedforwardTuner.class,
+                    MecanumMotorDirectionDebugger.class,
+                    ManualFeedbackTuner.class
+            )) {
+                configRoot.putVariable(c.getSimpleName(), ReflectionConfig.createVariableFromClass(c));
+            }
+        });
     }
 }

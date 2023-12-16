@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.tuning;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.roadrunner.Pose2d;
 // TODO: remove Actions from the core module?
 import com.acmerobotics.roadrunner.ftc.Actions;

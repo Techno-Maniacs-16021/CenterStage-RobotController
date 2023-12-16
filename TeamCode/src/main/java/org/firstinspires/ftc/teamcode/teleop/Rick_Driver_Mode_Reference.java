@@ -11,6 +11,7 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -21,6 +22,7 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
 
 
@@ -33,6 +35,7 @@ public class Rick_Driver_Mode_Reference extends OpMode
     CRServo left_intake, right_intake;
     DcMotorEx horizontal_slides, left_vertical_slides,right_vertical_slides;
     AnalogInput rightArmPosition,leftArmPosition;
+    RevColorSensorV3 pixelDetector;
     /////////////////////////////////////////////
     private ElapsedTime armCooldown = new ElapsedTime();
     private ElapsedTime loopTime = new ElapsedTime();
@@ -60,6 +63,7 @@ public class Rick_Driver_Mode_Reference extends OpMode
         left_vertical_slides = hardwareMap.get(DcMotorEx.class,"LV");
         right_vertical_slides = hardwareMap.get(DcMotorEx.class,"RV");
         horizontal_slides = hardwareMap.get(DcMotorEx.class,"H");
+        pixelDetector = hardwareMap.get(RevColorSensorV3.class,"PD");
 ////////////////////////SET PWM RANGE////////////////
         left_arm.setPwmRange(new PwmControl.PwmRange(500,2500));
         right_arm.setPwmRange(new PwmControl.PwmRange(500,2500));
@@ -281,6 +285,7 @@ public class Rick_Driver_Mode_Reference extends OpMode
         telemetry.addData("vertical power: ",vPower);
         telemetry.addData("arm angle:", armAngle);
         telemetry.addData("loop time: ",loopTime.time());
+        telemetry.addData("distance in MM:",pixelDetector.getDistance(DistanceUnit.MM));
         loopTime.reset();
         telemetry.update();
     }

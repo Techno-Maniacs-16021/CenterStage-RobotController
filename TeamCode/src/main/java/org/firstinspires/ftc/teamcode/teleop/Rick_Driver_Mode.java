@@ -4,6 +4,7 @@ import static android.os.SystemClock.sleep;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 
+import android.util.Log;
 import android.util.Size;
 import android.widget.HorizontalScrollView;
 
@@ -14,6 +15,8 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.AnalogInput;
@@ -43,9 +46,12 @@ public class Rick_Driver_Mode extends OpMode
 {
     /////////////////////////////////////////////
     ServoImplEx intake_arm,claw,claw_angler;
-    CRServo left_aligner, right_aligner;
+    CRServo left_aligner;
     DcMotorEx left_slides,right_slides,left_intake,right_intake;
     AnalogInput claw_Position, claw_Angle;
+    RevColorSensorV3 pixelDetector;
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
     /////////////////////////////////////////////
     private ElapsedTime loopTime = new ElapsedTime();
     private MecanumDrive drive;
@@ -54,10 +60,12 @@ public class Rick_Driver_Mode extends OpMode
     public static double clawPosition,clawAngle,intakePower,speedMultiplier;
     boolean intaked,outaked,OVERIDE;
     public static int HIGH,MID;
+    public static double zeroLimit,oneLimit,twoLimit;
     public static double p,i,d,f,Target;
     private PIDController Controller;
     public static int INTIAL_OFFSET,PIXEL_LAYER;
     public double slidePower;
+    public static double distance = 0;
     /////////////////////////////////////////////
     @Override
     public void init(){
@@ -68,8 +76,7 @@ public class Rick_Driver_Mode extends OpMode
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
         claw_angler = hardwareMap.get(ServoImplEx.class,"CA");
 
-        left_aligner = hardwareMap.get(CRServo.class,"LA");
-        right_aligner = hardwareMap.get(CRServo.class,"RA");
+        left_aligner = hardwareMap.get(CRServo.class,"Aligner");
 
         claw_Position = hardwareMap.get(AnalogInput.class,"Claw Pos");
         claw_Angle = hardwareMap.get(AnalogInput.class,"Claw Angle");
@@ -79,13 +86,16 @@ public class Rick_Driver_Mode extends OpMode
         left_intake = hardwareMap.get(DcMotorEx.class,"LI");
         right_intake = hardwareMap.get(DcMotorEx.class,"RI");
 
+        pixelDetector = hardwareMap.get(RevColorSensorV3.class,"PD");
+
+        blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
 ////////////////////////SET PWM RANGE////////////////
-        intake_arm.setPwmRange(new PwmControl.PwmRange(510,24900));
+        intake_arm.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw_angler.setPwmRange(new PwmControl.PwmRange(510,2490));
 ////////////////////////HARDWARE REVERSING///////////
-left_slides.setDirection(DcMotorSimple.Direction.REVERSE);
-right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
+        left_slides.setDirection(DcMotorSimple.Direction.REVERSE);
+        right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
 ////////////////////////MOTOR BRAKE BEHAVIOR/////////
         left_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         right_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
@@ -102,12 +112,16 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         telemetry.addData("Status", "Initialized");
 /////////////////////////////////////////////////////
         tagProcessor = new AprilTagProcessor.Builder().setDrawTagID(true).setDrawTagOutline(true).setDrawAxes(true).setDrawCubeProjection(true).build();
-        tfodProcessor = TfodProcessor.easyCreateWithDefaults();
+        tfodProcessor = new TfodProcessor.Builder().setModelAssetName("redTeamProp.tflite").setModelLabels(new String[]{"Red Prop"}).build();
         VisionPortal visionPortal = new VisionPortal.Builder().addProcessor(tfodProcessor).addProcessor(tagProcessor).setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")).setCameraResolution(new Size(640, 480)).setStreamFormat(VisionPortal.StreamFormat.MJPEG).build();
 
         p=0;i=0;d=0;f=0;Target = 0;speedMultiplier=1;
         INTIAL_OFFSET = 0;PIXEL_LAYER= 0;
+        zeroLimit=80;oneLimit=66;twoLimit=55;
         intaked = false;
+
+        pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
+        blinkinLedDriver.setPattern(pattern);
 
     }
     @Override
@@ -126,6 +140,8 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
     }
     @Override
     public void loop(){
+        //
+        clawAngle=claw_Angle.getVoltage();
         // April Tags
         if (tagProcessor.getDetections().size() > 0){
             AprilTagDetection tag = tagProcessor.getDetections().get(0);
@@ -138,34 +154,48 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
             telemetry.addData("yaw", tag.ftcPose.yaw);
         }
         telemetry.update();
+    ////////////////////LED LOGIC///////////
+        if(pixelDetector.getDistance(DistanceUnit.MM)>twoLimit&&pixelDetector.getDistance(DistanceUnit.MM)<oneLimit){
+            pattern = RevBlinkinLedDriver.BlinkinPattern.BLUE;
+            blinkinLedDriver.setPattern(pattern);
+        }
+        else if(pixelDetector.getDistance(DistanceUnit.MM)>oneLimit&&pixelDetector.getDistance(DistanceUnit.MM)<zeroLimit){
+            pattern = RevBlinkinLedDriver.BlinkinPattern.GREEN;
+            blinkinLedDriver.setPattern(pattern);
+        }
+        else if(pixelDetector.getDistance(DistanceUnit.MM)>zeroLimit){
+            pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
+            blinkinLedDriver.setPattern(pattern);
+        }
+        else{
+            pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
+            blinkinLedDriver.setPattern(pattern);
+        }
 ////////////////////////SLIDES PID//////////
         Controller.setPID(p,i,d);
         int Pos = (right_slides.getCurrentPosition()+left_slides.getCurrentPosition())/2;
         double PID = Controller.calculate(Pos,Target);
         double Power = PID+f;
-            left_slides.setPower(Power);
-            right_slides.setPower(Power);
+            //left_slides.setPower(Power);
+            //right_slides.setPower(Power);
 //INTAKE
         if(gamepad1.a){
             left_intake.setPower(1);
             right_intake.setPower(1);
             left_aligner.setPower(1);
-            right_aligner.setPower(1);
         }
         else if (gamepad1.b){
             left_intake.setPower(-1);
             right_intake.setPower(-1);
             left_aligner.setPower(0);
-            right_aligner.setPower(0);
         }
         else {
             left_intake.setPower(0);
             right_intake.setPower(0);
             left_aligner.setPower(0);
-            right_aligner.setPower(0);
         }
         if(gamepad1.dpad_up)intake_arm.setPosition(1);
-        else if(gamepad1.dpad_down)intake_arm.setPosition(0);
+        else if(gamepad1.dpad_down)intake_arm.setPosition(0.15);
 //Slides
         left_slides.setPower(slidePower);
         right_slides.setPower(slidePower);
@@ -173,14 +203,23 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         else if(gamepad1.left_trigger!=0) slidePower = -gamepad1.left_trigger;
         else slidePower = 0;
 //Outtake
-        if(gamepad1.left_bumper)claw_angler.setPosition(1);
-        else if(gamepad1.right_bumper){
-            claw_angler.setPosition(0);
-            claw.setPosition(0.3);
+        if(gamepad1.left_bumper){
+        claw_angler.setPosition(1);
+        claw.setPosition(0.5);
         }
+        else if(gamepad1.right_bumper)claw_angler.setPosition(0);
         else if(gamepad1.dpad_left) claw_angler.setPosition(0.3);
         if(gamepad1.x)claw.setPosition(1);
         else if(gamepad1.y)claw.setPosition(0);
+        else if(gamepad1.dpad_right){
+            if(clawAngle>2.19){
+                claw_angler.setPosition(0.05);
+            }
+            else if(clawAngle<2.18){
+                claw_angler.setPosition(0);
+            }
+            claw.setPosition(0.5);
+        }
 ////////////////////////DRIVE LOGIC//////////////////
 
         drive.setDrivePowers(new PoseVelocity2d(
@@ -199,7 +238,9 @@ right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
         telemetry.addData("Claw Position: ",clawPosition);
         telemetry.addData("Claw Angle: ",clawAngle);
         telemetry.addData("Slide Speed: ",Power);
-
+        telemetry.addData("distance in MM:",pixelDetector.getDistance(DistanceUnit.MM));
+        distance=pixelDetector.getDistance(DistanceUnit.MM);
+        Log.i("pixelDistance", ""+pixelDetector.getDistance(DistanceUnit.MM));
         loopTime.reset();
         telemetry.update();
     }

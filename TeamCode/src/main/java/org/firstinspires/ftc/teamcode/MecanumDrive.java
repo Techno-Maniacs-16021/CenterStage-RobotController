@@ -49,14 +49,14 @@ import java.util.List;
 public final class MecanumDrive {
     public static class Params {
         // drive model parameters
-        public double inPerTick = 1875.1583;
-        public double lateralInPerTick = 698.7458002004104;
-        public double trackWidthTicks = 16830.922729483667;
+        public double inPerTick = 0.00053155;
+        public double lateralInPerTick = 0.00011887391397780072;
+        public double trackWidthTicks = 17214.53313139688;
 
         // feedforward parameters (in tick units)
-        public double kS = 1.6473255240733768;
-        public double kV = 0.00006297516994431583;
-        public double kA = 0;
+        public double kS = 1.8521921931169272;
+        public double kV = 0.00006295696405143136;
+        public double kA = 0.01;
 
         // path profile parameters (in inches)
         public double maxWheelVel = 50;

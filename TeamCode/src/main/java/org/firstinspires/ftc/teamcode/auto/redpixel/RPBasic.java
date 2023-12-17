@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.auto.redpixel;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
 
+import static org.firstinspires.ftc.teamcode.teleop.Driver_Mode.getError;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -61,29 +63,29 @@ public class RPBasic extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(-36,-64,3 * Math.PI / 2));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(-36, -64, 3 * Math.PI / 2));
 
         intake_arm = hardwareMap.get(ServoImplEx.class, "IA");
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
-        claw_angler = hardwareMap.get(ServoImplEx.class,"CA");
+        claw_angler = hardwareMap.get(ServoImplEx.class, "CA");
 
-        aligner = hardwareMap.get(CRServo.class,"Aligner");
+        aligner = hardwareMap.get(CRServo.class, "Aligner");
 
-        claw_Position = hardwareMap.get(AnalogInput.class,"Claw Pos");
-        claw_Angle = hardwareMap.get(AnalogInput.class,"Claw Angle");
+        claw_Position = hardwareMap.get(AnalogInput.class, "Claw Pos");
+        claw_Angle = hardwareMap.get(AnalogInput.class, "Claw Angle");
 
-        left_slides = hardwareMap.get(DcMotorEx.class,"LS");
-        right_slides = hardwareMap.get(DcMotorEx.class,"RS");
-        left_intake = hardwareMap.get(DcMotorEx.class,"LI");
-        right_intake = hardwareMap.get(DcMotorEx.class,"RI");
+        left_slides = hardwareMap.get(DcMotorEx.class, "LS");
+        right_slides = hardwareMap.get(DcMotorEx.class, "RS");
+        left_intake = hardwareMap.get(DcMotorEx.class, "LI");
+        right_intake = hardwareMap.get(DcMotorEx.class, "RI");
 
-        pixelDetector = hardwareMap.get(RevColorSensorV3.class,"PD");
+        pixelDetector = hardwareMap.get(RevColorSensorV3.class, "PD");
 
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
 ////////////////////////SET PWM RANGE////////////////
-        intake_arm.setPwmRange(new PwmControl.PwmRange(510,2490));
-        claw.setPwmRange(new PwmControl.PwmRange(510,2490));
-        claw_angler.setPwmRange(new PwmControl.PwmRange(510,2490));
+        intake_arm.setPwmRange(new PwmControl.PwmRange(510, 2490));
+        claw.setPwmRange(new PwmControl.PwmRange(510, 2490));
+        claw_angler.setPwmRange(new PwmControl.PwmRange(510, 2490));
 ////////////////////////HARDWARE REVERSING///////////
         left_slides.setDirection(DcMotorSimple.Direction.REVERSE);
         right_intake.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -98,23 +100,36 @@ public class RPBasic extends LinearOpMode {
         left_intake.setMode(STOP_AND_RESET_ENCODER);
         left_intake.setMode(RUN_WITHOUT_ENCODER);
 ////////////////////////PID CONTROLLERS//////////////
-        Controller = new PIDController(p,i,d);
+        Controller = new PIDController(p, i, d);
 ////////////////////////DASHBOARD TELEMETRY//////////
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 ////////////////////////STATUS UPDATE////////////////
         telemetry.addData("Status", "Initialized");
 /////////////////////////////////////////////////////
-        p=0.0035;i=0;d=0.0001;f=0.075;Target = 0;speedMultiplier=1;
-        INTIAL_OFFSET = 800;PIXEL_LAYER= 100;ALLOWED_ERROR=30;INTAKE_OFFSET=300;
-        zeroLimit=80;oneLimit=66;twoLimit=55;
-        intaked = false; intakeReady=false; outtaked = false; actionInit = false;
+        p = 0.0035;
+        i = 0;
+        d = 0.0001;
+        f = 0.075;
+        Target = 0;
+        speedMultiplier = 1;
+        INTIAL_OFFSET = 800;
+        PIXEL_LAYER = 100;
+        ALLOWED_ERROR = 30;
+        INTAKE_OFFSET = 300;
+        zeroLimit = 80;
+        oneLimit = 66;
+        twoLimit = 55;
+        intaked = false;
+        intakeReady = false;
+        outtaked = false;
+        actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
 
         waitForStart();
 
-        clawAngle=claw_Angle.getVoltage();
-        clawPosition=claw_Position.getVoltage();
+        clawAngle = claw_Angle.getVoltage();
+        clawPosition = claw_Position.getVoltage();
 
         while (opModeIsActive()) {
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
@@ -124,7 +139,7 @@ public class RPBasic extends LinearOpMode {
 
             //raise slides
             Target = 1000;
-            while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&!isStopRequested()) {
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -149,7 +164,7 @@ public class RPBasic extends LinearOpMode {
             sleep(500);
             //raise slides
             Target = 1000;
-            while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&!isStopRequested()) {
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -161,7 +176,7 @@ public class RPBasic extends LinearOpMode {
             sleep(500);
             //lower slides
             Target = 0;
-            while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&!isStopRequested()) {
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -176,11 +191,39 @@ public class RPBasic extends LinearOpMode {
                     .splineToConstantHeading(new Vector2d(51, -36), Math.PI)
                     .build());
 
+            //raise slides
+            Target = 1000;
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+                Controller.setPID(p, i, d);
+                double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
+                double Power = PID + f;
+                left_slides.setPower(Power);
+                right_slides.setPower(Power);
+            }
+            //claw out
+            claw_angler.setPosition(0.5);
+            sleep(500);
+            //claw release
+            sleep(500);
+            claw.setPosition(0.5);
+            sleep(500);
+            //claw in
+            claw_angler.setPosition(1);
+            sleep(500);
+            //lower slides
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+                Controller.setPID(p, i, d);
+                double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
+                double Power = PID + f;
+                left_slides.setPower(Power);
+                right_slides.setPower(Power);
+            }
+            
             Actions.runBlocking(drive.actionBuilder(new Pose2d(51, -36, Math.PI))
                     .strafeTo(new Vector2d(51, -60))
                     .splineToConstantHeading(new Vector2d(60, -60), Math.PI)
                     .build());
-            
+
             requestOpModeStop();
         }
     }

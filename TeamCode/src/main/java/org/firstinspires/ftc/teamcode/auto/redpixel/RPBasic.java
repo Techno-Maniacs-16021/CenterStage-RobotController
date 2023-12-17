@@ -127,7 +127,7 @@ public class RPBasic extends LinearOpMode {
         actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
-        straight = false;
+        straight = true;
         left = false;
         right = false;
 
@@ -138,25 +138,24 @@ public class RPBasic extends LinearOpMode {
 
         while (opModeIsActive()) {
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
-                    .splineToConstantHeading(new Vector2d(-36, -44), 3 * Math.PI / 2)
+                    .splineToConstantHeading(new Vector2d(-36, -48), 3 * Math.PI / 2)
                     .build());
             //check for center pixel
             sleep(1000);
             if(straight){
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44, 3 * Math.PI / 2))
-                        .strafeTo(new Vector2d(-44,-32))
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-48, 3 * Math.PI / 2))
+                        .splineToConstantHeading(new Vector2d(-36,-12), 3 * Math.PI / 2)
+                        .turn(-Math.PI)
                         .build());
                 //place center
                 sleep(1000);
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-44,-32, 3 * Math.PI / 2))
-                        .splineTo(new Vector2d(-60,-12), 3 * Math.PI/2)
-                        .splineToConstantHeading(new Vector2d(-36,-12),Math.PI)
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-12, Math.PI / 2))
+                        .turn(Math.PI / 2)
                         .build());
             }
             else {
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44,3 * Math.PI / 2))
-                        .splineToConstantHeading(new Vector2d(-36,-36), 3 * Math.PI/2)
-                        .turn(Math.PI / 4)
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-48,3 * Math.PI / 2))
+                        .turn(Math.PI / 3)
                         .build());
 
                 //check for left pixel
@@ -170,6 +169,7 @@ public class RPBasic extends LinearOpMode {
                     sleep(1000);
                     Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,0))
                             .strafeTo(new Vector2d(-36,-12))
+                            .turn(Math.PI)
                             .build());
 
                 }

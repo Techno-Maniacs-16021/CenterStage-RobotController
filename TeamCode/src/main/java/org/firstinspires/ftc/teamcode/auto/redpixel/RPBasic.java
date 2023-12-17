@@ -133,7 +133,7 @@ public class RPBasic extends LinearOpMode {
 
         while (opModeIsActive()) {
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
-                    .splineToConstantHeading(new Vector2d(-36, -36), 3 * Math.PI / 2)
+                    .splineToConstantHeading(new Vector2d(-36, -48), 3 * Math.PI / 2)
                     .turn(-Math.PI / 2)
                     .build());
 
@@ -184,7 +184,7 @@ public class RPBasic extends LinearOpMode {
                 right_slides.setPower(Power);
             }
 
-            Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -36, Math.PI))
+            Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -48, Math.PI))
                     .strafeTo(new Vector2d(-36, -12))
                     .splineToConstantHeading(new Vector2d(36, -12), Math.PI)
                     .strafeTo(new Vector2d(36, -36))

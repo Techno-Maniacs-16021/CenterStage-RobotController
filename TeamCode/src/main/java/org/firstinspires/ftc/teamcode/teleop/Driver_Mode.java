@@ -83,8 +83,6 @@ public class Driver_Mode extends OpMode
         left_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
         right_slides.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE);
 ////////////////////////ENCODER RESET////////////////
-        left_slides.setMode(STOP_AND_RESET_ENCODER);
-        right_slides.setMode(STOP_AND_RESET_ENCODER);
         left_slides.setMode(RUN_WITHOUT_ENCODER);
         right_slides.setMode(RUN_WITHOUT_ENCODER);
         left_intake.setMode(STOP_AND_RESET_ENCODER);

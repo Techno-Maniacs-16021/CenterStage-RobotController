@@ -29,9 +29,15 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
+
+import java.util.List;
 
 /*
  * This is a simple routine to test turning capabilities.
@@ -39,7 +45,21 @@ import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 @Autonomous
 @Config
 public class RPBasic extends LinearOpMode {
+    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
+    /**
+     * The variable to store our instance of the TensorFlow Object Detection processor.
+     */
+    private TfodProcessor tfod;
+
+    /**
+     * The variable to store our instance of the vision portal.
+     */
+    private VisionPortal visionPortal;
+    private static final String TFOD_MODEL_ASSET = "redCloseModel.tflite";
+    private static final String[] LABELS = {
+            "Red Prop",
+    };
     ServoImplEx intake_arm,claw,claw_angler;
     CRServo aligner;
     DcMotorEx left_slides,right_slides,left_intake,right_intake;
@@ -126,17 +146,33 @@ public class RPBasic extends LinearOpMode {
         claw_angler.setPosition(1);
         claw.setPosition(1);
 
+        initTfod();
+
         waitForStart();
 
         clawAngle = claw_Angle.getVoltage();
         clawPosition = claw_Position.getVoltage();
 
         while (opModeIsActive()) {
+            visionPortal.stopStreaming();
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
                     .splineToConstantHeading(new Vector2d(-36, -36), 3 * Math.PI / 2)
                     .turn(-Math.PI / 2)
                     .build());
+            visionPortal.resumeStreaming();
+            double startTime = time;
+            boolean found = false;
+            while(time - startTime < 1000 && !found) found = objectDetected();
+            if(found){
 
+            }else{
+                while(time - startTime < 1000 && !found) found = objectDetected();
+                if(found){
+
+                }else{
+
+                }
+            }
             //raise slides
             Target = 1000;
             while (setPositionOfSlides(Target)) {
@@ -235,6 +271,70 @@ public class RPBasic extends LinearOpMode {
 
     public boolean setPositionOfSlides(double Target){
         return getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested();
+    }
+    private void initTfod() {
+
+        // Create the TensorFlow processor by using a builder.
+        tfod = new TfodProcessor.Builder()
+
+                // Use setModelAssetName() if the TF Model is built in as an asset.
+                // Use setModelFileName() if you have downloaded a custom team model to the Robot Controller.
+                .setModelAssetName(TFOD_MODEL_ASSET)
+
+                //.setModelFileName(TFOD_MODEL_FILE)
+
+                .setModelLabels(LABELS)
+                .setIsModelTensorFlow2(true)
+                .setIsModelQuantized(true)
+                .setModelInputSize(300)
+                .setModelAspectRatio(16.0 / 9.0)
+
+                .build();
+
+        // Create the vision portal by using a builder.
+        VisionPortal.Builder builder = new VisionPortal.Builder();
+
+        // Set the camera (webcam vs. built-in RC phone camera).
+        if (USE_WEBCAM) {
+            builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        } else {
+            builder.setCamera(BuiltinCameraDirection.BACK);
+        }
+
+        // Choose a camera resolution. Not all cameras support all resolutions.
+        //builder.setCameraResolution(new Size(640, 480));
+
+        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
+        //builder.enableCameraMonitoring(true);
+
+        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
+        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+
+        // Choose whether or not LiveView stops if no processors are enabled.
+        // If set "true", monitor shows solid orange screen if no processors enabled.
+        // If set "false", monitor shows camera view without annotations.
+        //builder.setAutoStopLiveView(false);
+
+        // Set and enable the processor.
+        builder.addProcessor(tfod);
+
+        // Build the Vision Portal, using the above settings.
+        visionPortal = builder.build();
+
+        // Set confidence threshold for TFOD recognitions, at any time.
+        //tfod.setMinResultConfidence(0.75f);
+
+        // Disable or re-enable the TFOD processor at any time.
+        //visionPortal.setProcessorEnabled(tfod, true);
+
+    }
+    private boolean objectDetected() {
+
+        List<Recognition> currentRecognitions = tfod.getRecognitions();
+        telemetry.addData("# Objects Detected", currentRecognitions.size());
+
+        return currentRecognitions.size() > 0;
+
     }
 
 }

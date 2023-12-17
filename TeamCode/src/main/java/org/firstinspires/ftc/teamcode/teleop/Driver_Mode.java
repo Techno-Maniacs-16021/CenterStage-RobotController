@@ -131,12 +131,21 @@ public class Driver_Mode extends OpMode
             blinkinLedDriver.setPattern(pattern);
         }
 ////////////////////////SLIDES PID//////////
-        Controller.setPID(p,i,d);
-        int Pos = (right_slides.getCurrentPosition()+left_slides.getCurrentPosition())/2;
-        double PID = Controller.calculate(Pos,Target);
-        double Power = PID+f;
-        left_slides.setPower(Power);
-        right_slides.setPower(Power);
+        Controller.setPID(p, i, d);
+        int Pos = (right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2;
+        double PID = Controller.calculate(Pos, Target);
+        double Power = PID + f;
+            if(gamepad2.touchpad){
+                left_slides.setPower(-0.1);
+                right_slides.setPower(-0.1);
+            }
+            else {
+                left_slides.setPower(Power);
+                right_slides.setPower(Power);
+            }
+            if(gamepad1.options) Target=2200;
+            if(gamepad1.touchpad) Target=1000;
+
 //INTAKE
         if(gamepad1.right_trigger>0){
             left_intake.setPower(gamepad1.right_trigger);

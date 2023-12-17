@@ -132,10 +132,10 @@ public class RPBasic extends LinearOpMode {
                 right_slides.setPower(Power);
             }
             //angle claw out
-            claw_angler.setPosition(0.5);
+            claw_angler.setPosition(0.25);
             sleep(500);
             //lower slides
-            Target = 400;
+            Target = 0;
             while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&!isStopRequested()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);

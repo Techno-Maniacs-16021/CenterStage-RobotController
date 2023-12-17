@@ -31,7 +31,7 @@ import org.firstinspires.ftc.teamcode.MecanumDrive;
 public class Driver_Mode extends OpMode
 {
     /////////////////////////////////////////////
-    ServoImplEx intake_arm,claw,claw_angler;
+    ServoImplEx intake_arm,claw,claw_angler, drone;
     CRServo aligner;
     DcMotorEx left_slides,right_slides,left_intake,right_intake;
     AnalogInput claw_Position, claw_Angle;
@@ -58,6 +58,7 @@ public class Driver_Mode extends OpMode
         intake_arm = hardwareMap.get(ServoImplEx.class, "IA");
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
         claw_angler = hardwareMap.get(ServoImplEx.class,"CA");
+        drone = hardwareMap.get(ServoImplEx.class, "Drone");
 
         aligner = hardwareMap.get(CRServo.class,"Aligner");
 
@@ -100,6 +101,7 @@ public class Driver_Mode extends OpMode
         intaked = false; intakeReady=false; outtaked = false; actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
+        drone.setPosition(1);
         pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
     }
     @Override
@@ -150,6 +152,10 @@ public class Driver_Mode extends OpMode
             pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_BLUE;
         }
         blinkinLedDriver.setPattern(pattern);
+
+        if(gamepad2.dpad_right){
+            drone.setPosition(0);
+        }
 
 ////////////////////////SLIDES PID//////////
         Controller.setPID(p, i, d);

@@ -62,9 +62,9 @@ public class ConceptTensorFlowObjectDetection extends LinearOpMode {
      * The variable to store our instance of the vision portal.
      */
     private VisionPortal visionPortal;
-    private static final String TFOD_MODEL_ASSET = "redCloseModel.tflite";
+    private static final String TFOD_MODEL_ASSET = "blueCloseModel.tflite";
     private static final String[] LABELS = {
-            "Red Prop",
+            "Blue Prop",
     };
     @Override
     public void runOpMode() {

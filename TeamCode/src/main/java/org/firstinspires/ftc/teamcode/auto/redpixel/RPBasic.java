@@ -60,6 +60,8 @@ public class RPBasic extends LinearOpMode {
     public double slidePower;
     public static double distance = 0;
 
+    public static boolean straight, left, right;
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -125,6 +127,9 @@ public class RPBasic extends LinearOpMode {
         actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
+        straight = false;
+        left = false;
+        right = false;
 
         waitForStart();
 
@@ -133,9 +138,55 @@ public class RPBasic extends LinearOpMode {
 
         while (opModeIsActive()) {
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
-                    .splineToConstantHeading(new Vector2d(-36, -48), 3 * Math.PI / 2)
-                    .turn(-Math.PI / 2)
+                    .splineToConstantHeading(new Vector2d(-36, -44), 3 * Math.PI / 2)
                     .build());
+            //check for center pixel
+            sleep(1000);
+            if(straight){
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44, 3 * Math.PI / 2))
+                        .strafeTo(new Vector2d(-44,-32))
+                        .build());
+                //place center
+                sleep(1000);
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-44,-32, 3 * Math.PI / 2))
+                        .splineTo(new Vector2d(-60,-12), 3 * Math.PI/2)
+                        .splineToConstantHeading(new Vector2d(-36,-12),Math.PI)
+                        .build());
+            }
+            else {
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44,3 * Math.PI / 2))
+                        .splineToConstantHeading(new Vector2d(-36,-36), 3 * Math.PI/2)
+                        .turn(Math.PI / 4)
+                        .build());
+
+                //check for left pixel
+                sleep(1000);
+
+                if(left) {
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,7 * Math.PI / 4))
+                            .turn(Math.PI/4)
+                            .build());
+                    //place left
+                    sleep(1000);
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,0))
+                            .strafeTo(new Vector2d(-36,-12))
+                            .build());
+
+                }
+                else {
+                    right = true;
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,7 * Math.PI / 4))
+                            .turn(-3 * Math.PI/4)
+                            .build());
+                    //place right
+                    sleep(1000);
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,Math.PI))
+                            .strafeTo(new Vector2d(-36,-12))
+                            .build());
+                }
+            }
+            requestOpModeStop();
+
 
             //raise slides
             Target = 1000;

@@ -112,7 +112,7 @@ public class Rick_Driver_Mode extends OpMode
         telemetry.addData("Status", "Initialized");
 /////////////////////////////////////////////////////
         tagProcessor = new AprilTagProcessor.Builder().setDrawTagID(true).setDrawTagOutline(true).setDrawAxes(true).setDrawCubeProjection(true).build();
-        tfodProcessor = new TfodProcessor.Builder().setModelAssetName("redTeamProp.tflite").setModelLabels(new String[]{"Red Prop"}).build();
+        tfodProcessor = new TfodProcessor.Builder().setModelAssetName("Model.tflite").setModelLabels(new String[]{"Blue Prop", "Red Prop"}).build();
         VisionPortal visionPortal = new VisionPortal.Builder().addProcessor(tfodProcessor).addProcessor(tagProcessor).setCamera(hardwareMap.get(WebcamName.class, "Webcam 1")).setCameraResolution(new Size(640, 480)).setStreamFormat(VisionPortal.StreamFormat.MJPEG).build();
 
         p=0;i=0;d=0;f=0;Target = 0;speedMultiplier=1;

@@ -139,7 +139,7 @@ public class RPBasic extends LinearOpMode {
 
             //raise slides
             Target = 1000;
-            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+            while (setPositionOfSlides(Target)) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -231,6 +231,10 @@ public class RPBasic extends LinearOpMode {
     public static int getError(int current, double target){
         int error = Math.abs((int)target-current);
         return error;
+    }
+
+    public boolean setPositionOfSlides(double Target){
+        return getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested();
     }
 
 }

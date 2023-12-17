@@ -100,6 +100,7 @@ public class Driver_Mode extends OpMode
         intaked = false; intakeReady=false; outtaked = false; actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
+        pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
     }
     @Override
     public void init_loop(){
@@ -114,7 +115,7 @@ public class Driver_Mode extends OpMode
         clawAngle=claw_Angle.getVoltage();
         clawPosition=claw_Position.getVoltage();
 ////////////////////LED LOGIC///////////
-        if(pixelDetector.getDistance(DistanceUnit.MM)>twoLimit&&pixelDetector.getDistance(DistanceUnit.MM)<oneLimit){
+        /*if(pixelDetector.getDistance(DistanceUnit.MM)>twoLimit&&pixelDetector.getDistance(DistanceUnit.MM)<oneLimit){
             pattern = RevBlinkinLedDriver.BlinkinPattern.BLUE;
             blinkinLedDriver.setPattern(pattern);
         }
@@ -129,7 +130,27 @@ public class Driver_Mode extends OpMode
         else{
             pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
             blinkinLedDriver.setPattern(pattern);
+        }*/
+        if (gamepad2.b) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.YELLOW;
         }
+        else if (gamepad2.x) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.GREEN;
+        }
+        else if (gamepad2.y) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.VIOLET;
+        }
+        else if (gamepad2.a) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
+        }
+        else if (gamepad2.dpad_up) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
+        }
+        else if (gamepad2.dpad_down) {
+            pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_BLUE;
+        }
+        blinkinLedDriver.setPattern(pattern);
+
 ////////////////////////SLIDES PID//////////
         Controller.setPID(p, i, d);
         int Pos = (right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2;

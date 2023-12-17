@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auto.redpixel;
+package org.firstinspires.ftc.teamcode.auto.bluepixel;
 
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 import static com.qualcomm.robotcore.hardware.DcMotor.RunMode.STOP_AND_RESET_ENCODER;
@@ -46,7 +46,7 @@ import java.util.List;
  */
 @Autonomous
 @Config
-public class RPBasic extends LinearOpMode {
+public class BBoard extends LinearOpMode {
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
     /**
@@ -58,9 +58,9 @@ public class RPBasic extends LinearOpMode {
      * The variable to store our instance of the vision portal.
      */
     private VisionPortal visionPortal;
-    private static final String TFOD_MODEL_ASSET = "redCloseModel.tflite";
+    private static final String TFOD_MODEL_ASSET = "blueCloseModel.tflite";
     private static final String[] LABELS = {
-            "Red Prop",
+            "Blue Prop",
     };
     ServoImplEx intake_arm,claw,claw_angler;
     CRServo aligner;
@@ -87,7 +87,7 @@ public class RPBasic extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(-36, -62, 3 * Math.PI / 2));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(12, 62, 3 * Math.PI / 2));
 
         intake_arm = hardwareMap.get(ServoImplEx.class, "IA");
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
@@ -163,8 +163,8 @@ public class RPBasic extends LinearOpMode {
 
         while (opModeIsActive()) {
             visionPortal.stopStreaming();
-            Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -62, 3 * Math.PI / 2))
-                    .splineToConstantHeading(new Vector2d(-36, -44), 3 * Math.PI / 2)
+            Actions.runBlocking(drive.actionBuilder(new Pose2d(12, 62, Math.PI / 2))
+                    .splineToConstantHeading(new Vector2d(12, 44), Math.PI / 2)
                     .build());
             visionPortal.resumeStreaming();
             intake_arm.setPosition(1);
@@ -180,18 +180,18 @@ public class RPBasic extends LinearOpMode {
             visionPortal.stopStreaming();
             if(found){
                 straight = true;
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44, 3 * Math.PI / 2))
-                        .splineToConstantHeading(new Vector2d(-36,-14), 3 * Math.PI / 2)
-                        .turn(-Math.PI)
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(12,44, Math.PI / 2))
+                        .splineToConstantHeading(new Vector2d(12,14), Math.PI / 2)
+                        .turn(Math.PI)
                         .build());
                 releaseOnePixel();
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-14, Math.PI / 2))
-                        .turn(Math.PI / 2)
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(12,14, Math.PI / 2))
+                        .turn(-Math.PI / 2)
                         .build());
             }else{
 
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-44,3 * Math.PI / 2))
-                        .turn(Math.PI / 4)
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(12,44,Math.PI / 2))
+                        .turn(-Math.PI / 4)
                         .build());
                 visionPortal.resumeStreaming();
                 sleep(500);
@@ -204,22 +204,22 @@ public class RPBasic extends LinearOpMode {
                 }
                 if(!found){
                     right = true;
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,7 * Math.PI / 4))
-                            .turn(Math.PI/4)
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(12,36,Math.PI / 4))
+                            .turn(-Math.PI/4)
                             .build());
                     releaseOnePixel();
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,0))
-                            .strafeTo(new Vector2d(-36,-12))
-                            .turn(Math.PI)
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(12,36,0))
+                            .strafeTo(new Vector2d(12,12))
+                            .turn(-Math.PI)
                             .build());
                 }else{
                     left = true;
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,7 * Math.PI / 4))
-                            .turn(-3 * Math.PI/4)
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(12,36,Math.PI / 4))
+                            .turn(3 * Math.PI/4)
                             .build());
                     releaseOnePixel();
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,-36,Math.PI))
-                            .strafeTo(new Vector2d(-36,-12))
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(12,36, Math.PI))
+                            .strafeTo(new Vector2d(12,12))
                             .build());
                 }
             }
@@ -249,10 +249,10 @@ public class RPBasic extends LinearOpMode {
                 right_slides.setPower(Power);
             }
 
-            Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, -12, Math.PI))
-                    .splineToConstantHeading(new Vector2d(36, -12), Math.PI)
-                    .strafeTo(new Vector2d(36, -36))
-                    .splineToConstantHeading(new Vector2d(51, -38 + (right ? 4 : left ? -4 : 0)), Math.PI)
+            Actions.runBlocking(drive.actionBuilder(new Pose2d(12, 12, Math.PI))
+                    .splineToConstantHeading(new Vector2d(36, 12), Math.PI)
+                    .strafeTo(new Vector2d(36, 36))
+                    .splineToConstantHeading(new Vector2d(51, 38 + (right ? 4 : left ? -4 : 0)), Math.PI)
                     .build());
 
             //raise slides
@@ -283,10 +283,10 @@ public class RPBasic extends LinearOpMode {
                 left_slides.setPower(Power);
                 right_slides.setPower(Power);
             }
-            
-            Actions.runBlocking(drive.actionBuilder(new Pose2d(51, -38 + (right ? 4 : left ? -4 : 0), Math.PI))
-                    .strafeTo(new Vector2d(51, -60))
-                    .splineToConstantHeading(new Vector2d(60, -60), Math.PI)
+
+            Actions.runBlocking(drive.actionBuilder(new Pose2d(51, 38 + (right ? 4 : left ? -4 : 0), Math.PI))
+                    .strafeTo(new Vector2d(51, 60))
+                    .splineToConstantHeading(new Vector2d(60, 60), Math.PI)
                     .build());
 
             requestOpModeStop();

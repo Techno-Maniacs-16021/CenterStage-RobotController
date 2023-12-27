@@ -162,11 +162,9 @@ public class BBoard extends LinearOpMode {
         clawPosition = claw_Position.getVoltage();
 
         while (opModeIsActive()) {
-            visionPortal.stopStreaming();
             Actions.runBlocking(drive.actionBuilder(new Pose2d(12, 62, Math.PI / 2))
                     .splineToConstantHeading(new Vector2d(12, 44), Math.PI / 2)
                     .build());
-            visionPortal.resumeStreaming();
             intake_arm.setPosition(1);
             double startTime = time;
             boolean found = false;
@@ -177,7 +175,6 @@ public class BBoard extends LinearOpMode {
                 telemetry.addData("found: ", found);
                 telemetry.update();
             }
-            visionPortal.stopStreaming();
             if(found){
                 straight = true;
                 Actions.runBlocking(drive.actionBuilder(new Pose2d(12,44, Math.PI / 2))
@@ -193,7 +190,6 @@ public class BBoard extends LinearOpMode {
                 Actions.runBlocking(drive.actionBuilder(new Pose2d(12,44,Math.PI / 2))
                         .turn(-Math.PI / 4)
                         .build());
-                visionPortal.resumeStreaming();
                 sleep(500);
                 startTime = time;
                 while(time - startTime < 1.5 && !found) {
@@ -202,7 +198,7 @@ public class BBoard extends LinearOpMode {
                     telemetry.addData("found: ", found);
                     telemetry.update();
                 }
-                if(!found){
+                if(found){
                     right = true;
                     Actions.runBlocking(drive.actionBuilder(new Pose2d(12,36,Math.PI / 4))
                             .turn(-Math.PI/4)
@@ -224,7 +220,7 @@ public class BBoard extends LinearOpMode {
                 }
             }
             visionPortal.stopStreaming();
-            visionPortal.close();
+//            visionPortal.close();
             //raise slides
 
             //raise slides
@@ -240,7 +236,7 @@ public class BBoard extends LinearOpMode {
             claw_angler.setPosition(1);
             sleep(500);
             //lower slides
-            Target = 0;
+            Target = 200;
             while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);

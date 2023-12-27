@@ -58,7 +58,7 @@ public class BPixel extends LinearOpMode {
      * The variable to store our instance of the vision portal.
      */
     private VisionPortal visionPortal;
-    private static final String TFOD_MODEL_ASSET = "blueCloseModel.tflite";
+    private static final String TFOD_MODEL_ASSET = "blueCloseDepthModel.tflite";
     private static final String[] LABELS = {
             "Blue Prop",
     };
@@ -87,7 +87,7 @@ public class BPixel extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(-36, 62, 3 * Math.PI / 2));
+        MecanumDrive drive = new MecanumDrive(hardwareMap, new Pose2d(-36, 62,  Math.PI / 2));
 
         intake_arm = hardwareMap.get(ServoImplEx.class, "IA");
         claw = hardwareMap.get(ServoImplEx.class, "Claw");
@@ -162,30 +162,28 @@ public class BPixel extends LinearOpMode {
         clawPosition = claw_Position.getVoltage();
 
         while (opModeIsActive()) {
-            visionPortal.stopStreaming();
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, 62, Math.PI / 2))
                     .splineToConstantHeading(new Vector2d(-36, 44), Math.PI / 2)
                     .build());
-            visionPortal.resumeStreaming();
             intake_arm.setPosition(1);
             double startTime = time;
             boolean found = false;
 
-            while(time - startTime < 1.5 && !found) {
+            while(time - startTime < 2 && !found && opModeIsActive()) {
                 telemetry.addData("time: ", time);
                 found = objectDetected();
                 telemetry.addData("found: ", found);
                 telemetry.update();
             }
-            visionPortal.stopStreaming();
             if(found){
                 straight = true;
                 Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,44, Math.PI / 2))
-                        .splineToConstantHeading(new Vector2d(-36,14), Math.PI / 2)
-                        .turn(Math.PI)
+                        .turn(Math.PI/2)
+                        .strafeTo(new Vector2d(-36,14))
+                        .turn(Math.PI/2)
                         .build());
                 releaseOnePixel();
-                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,14, Math.PI / 2))
+                Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,14, 3 * Math.PI / 2))
                         .turn(-Math.PI / 2)
                         .build());
             }else{
@@ -193,22 +191,22 @@ public class BPixel extends LinearOpMode {
                 Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,44,Math.PI / 2))
                         .turn(-Math.PI / 4)
                         .build());
-                visionPortal.resumeStreaming();
                 sleep(500);
                 startTime = time;
-                while(time - startTime < 1.5 && !found) {
+                while(time - startTime < 2 && !found && opModeIsActive()) {
                     telemetry.addData("time: ", time);
                     found = objectDetected();
                     telemetry.addData("found: ", found);
                     telemetry.update();
                 }
-                if(!found){
+                if(found){
                     right = true;
                     Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,36,Math.PI / 4))
                             .turn(-Math.PI/4)
+                            .strafeTo(new Vector2d(-38,34))
                             .build());
                     releaseOnePixel();
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,36,0))
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-38,34,0))
                             .strafeTo(new Vector2d(-36,12))
                             .turn(-Math.PI)
                             .build());
@@ -216,20 +214,21 @@ public class BPixel extends LinearOpMode {
                     left = true;
                     Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,36,Math.PI / 4))
                             .turn(3 * Math.PI/4)
+                            .strafeTo(new Vector2d(-34,34))
                             .build());
                     releaseOnePixel();
-                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-36,36, Math.PI))
+                    Actions.runBlocking(drive.actionBuilder(new Pose2d(-34,34, Math.PI))
                             .strafeTo(new Vector2d(-36,12))
                             .build());
                 }
             }
             visionPortal.stopStreaming();
-            visionPortal.close();
+//            visionPortal.close();
             //raise slides
 
             //raise slides
             Target = 1000;
-            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && opModeIsActive()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -240,8 +239,8 @@ public class BPixel extends LinearOpMode {
             claw_angler.setPosition(1);
             sleep(500);
             //lower slides
-            Target = 0;
-            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+            Target = 150;
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && opModeIsActive()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -252,12 +251,12 @@ public class BPixel extends LinearOpMode {
             Actions.runBlocking(drive.actionBuilder(new Pose2d(-36, 12, Math.PI))
                     .splineToConstantHeading(new Vector2d(36, 12), Math.PI)
                     .strafeTo(new Vector2d(36, 36))
-                    .splineToConstantHeading(new Vector2d(51, 38 + (right ? 4 : left ? -4 : 0)), Math.PI)
+                    .splineToConstantHeading(new Vector2d(51 + (right || left ? 2 : 0), 38 + (right ? -6 : left ? 6 : 0)), Math.PI)
                     .build());
 
             //raise slides
             Target = 1000;
-            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && opModeIsActive()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -275,8 +274,8 @@ public class BPixel extends LinearOpMode {
             claw_angler.setPosition(1);
             sleep(500);
             //lower slides
-            Target = 200;
-            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested()) {
+            Target = 150;
+            while (getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && opModeIsActive()) {
                 Controller.setPID(p, i, d);
                 double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
                 double Power = PID + f;
@@ -284,11 +283,11 @@ public class BPixel extends LinearOpMode {
                 right_slides.setPower(Power);
             }
 
-            Actions.runBlocking(drive.actionBuilder(new Pose2d(51, 38 + (right ? 4 : left ? -4 : 0), Math.PI))
-                    .strafeTo(new Vector2d(51, 60))
-                    .splineToConstantHeading(new Vector2d(60, 60), Math.PI)
+            Actions.runBlocking(drive.actionBuilder(new Pose2d(51 + (right || left ? 2 : 0), 38 + (right ? -6 : left ? 6 : 0), Math.PI))
+                    .strafeTo(new Vector2d(51 + (right || left ? 2 : 0), 12))
+                    .splineToConstantHeading(new Vector2d(60, 12), Math.PI)
                     .build());
-
+            sleep(1000);
             requestOpModeStop();
         }
     }
@@ -299,7 +298,7 @@ public class BPixel extends LinearOpMode {
     }
 
     public boolean setPositionOfSlides(double Target){
-        return getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && !isStopRequested();
+        return getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2), Target) >= ALLOWED_ERROR && opModeIsActive();
     }
     private void initTfod() {
 
@@ -385,7 +384,7 @@ public class BPixel extends LinearOpMode {
         sleep(500);
         //lower slides
         Target = 150;
-        while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&!isStopRequested()) {
+        while(getError(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2),Target)>=ALLOWED_ERROR&&opModeIsActive()) {
             Controller.setPID(p, i, d);
             double PID = Controller.calculate(((right_slides.getCurrentPosition() + left_slides.getCurrentPosition()) / 2.0), Target);
             double Power = PID + f;

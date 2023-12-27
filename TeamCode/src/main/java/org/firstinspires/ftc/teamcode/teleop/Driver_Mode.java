@@ -74,6 +74,7 @@ public class Driver_Mode extends OpMode
 
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
 ////////////////////////SET PWM RANGE////////////////
+        drone.setPwmRange(new PwmControl.PwmRange(510,2490));
         intake_arm.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw_angler.setPwmRange(new PwmControl.PwmRange(510,2490));
@@ -96,12 +97,12 @@ public class Driver_Mode extends OpMode
         telemetry.addData("Status", "Initialized");
 /////////////////////////////////////////////////////
         p=0.0035;i=0;d=0.0001;f=0.075;Target = 0;speedMultiplier=1;
-        INTIAL_OFFSET = 800;PIXEL_LAYER= 100;ALLOWED_ERROR=30;INTAKE_OFFSET=300;
+        INTIAL_OFFSET = 800;PIXEL_LAYER= 300;ALLOWED_ERROR=50;INTAKE_OFFSET=300;
         zeroLimit=80;oneLimit=66;twoLimit=55;
         intaked = false; intakeReady=false; outtaked = false; actionInit = false;
         claw_angler.setPosition(1);
         claw.setPosition(1);
-        drone.setPosition(1);
+        intake_arm.setPosition(1);
         pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
     }
     @Override
@@ -146,10 +147,10 @@ public class Driver_Mode extends OpMode
             pattern = RevBlinkinLedDriver.BlinkinPattern.WHITE;
         }
         else if (gamepad2.dpad_up) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_RED;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.BLUE;
         }
         else if (gamepad2.dpad_down) {
-            pattern = RevBlinkinLedDriver.BlinkinPattern.STROBE_BLUE;
+            pattern = RevBlinkinLedDriver.BlinkinPattern.RED;
         }
         blinkinLedDriver.setPattern(pattern);
 
@@ -216,11 +217,11 @@ public class Driver_Mode extends OpMode
 //>Slides
         else if(intakeReady&&intaked&&!outtaked&&actionInit){
             if(Target==-50)Target=INTIAL_OFFSET;
-            if(gamepad1.share)Target-=5;
+            if(gamepad1.share)Target-=50;
             if(getError(Pos,Target)<=ALLOWED_ERROR){
                 claw_angler.setPosition(0);
-                if(gamepad1.left_bumper)Target+=PIXEL_LAYER;
-                else if(gamepad1.right_bumper)Target-=PIXEL_LAYER;
+                if(gamepad1.right_bumper)Target+=PIXEL_LAYER;
+                else if(gamepad1.left_bumper)Target-=PIXEL_LAYER;
                 if(gamepad1.a) {
                     outtaked = true;
 
@@ -282,7 +283,6 @@ public class Driver_Mode extends OpMode
     }
     @Override
     public void stop(){
-
     }
     public static int getError(int current, double target){
         int error = Math.abs((int)target-current);

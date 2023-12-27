@@ -90,6 +90,7 @@ public class Rick_Driver_Mode extends OpMode
 
         blinkinLedDriver = hardwareMap.get(RevBlinkinLedDriver.class, "led");
 ////////////////////////SET PWM RANGE////////////////
+
         intake_arm.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw.setPwmRange(new PwmControl.PwmRange(510,2490));
         claw_angler.setPwmRange(new PwmControl.PwmRange(510,2490));

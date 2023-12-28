@@ -740,11 +740,10 @@ public class BotV1 extends MecanumDrive {
                 case 2:
                     if(slidesReachedTarget()){
                         clawAnglerServo.setPosition(0);
-//                        if(gamepad1.right_bumper)Target+=PIXEL_LAYER;
-//                        else if(gamepad1.left_bumper)Target-=PIXEL_LAYER;
                         if(aState) {
                             currentSequence++;
                             doSequence = false;
+                            thirdSequence = false;
                         }
                     }
                     break;
@@ -796,6 +795,7 @@ public class BotV1 extends MecanumDrive {
         clawServo.setPosition(0.5);
     }
     public double updateSlidePosition(){
-        return (rightSlidesMotor.getCurrentPosition() + leftSlidesMotor.getCurrentPosition()) / 2.0;
+        slidesPosition = (rightSlidesMotor.getCurrentPosition() + leftSlidesMotor.getCurrentPosition()) / 2.0;
+        return slidesPosition;
     }
 }

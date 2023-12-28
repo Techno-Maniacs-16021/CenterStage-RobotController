@@ -22,8 +22,7 @@ import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.MecanumDrive;
+import org.firstinspires.ftc.teamcode.bot.MecanumDrive;
 
 
 @Config
@@ -48,7 +47,6 @@ public class Driver_Mode extends OpMode
     boolean intaked,intakeReady, outtaked,actionInit;
     public static int INTAKE_OFFSET,INTIAL_OFFSET,PIXEL_LAYER,ALLOWED_ERROR;
     //700 is minimum
-    public double slidePower;
     /////////////////////////////////////////////
     @Override
     public void init(){

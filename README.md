@@ -1,3 +1,17 @@
+# Techno Maniacs — FTC Robotics Team
+
+Autonomous navigation and computer vision software for our FIRST Tech Challenge competition robot. Team ranked 1st place at the New England Invitational (29 teams), #1 in New England and #26 in the U.S. prior to World Championship qualification (2024).
+
+## Key Contributions
+
+- **Autonomous navigation:** Spline-based trajectory generation and pure-pursuit path following using [RoadRunner](https://github.com/acmerobotics/road-runner) and [Pedro Pathing](https://github.com/Pedro-Pathing/PedroPathing), with dead-wheel odometry localization and feedforward-PID closed-loop control.
+- **Computer vision:** Real-time object detection and AprilTag localization using TensorFlow and OpenCV.
+- **Custom code:** [`TeamCode/src/main/java/org/firstinspires/ftc/teamcode/`](https://github.com/Techno-Maniacs-16021/CenterStage-RobotController/tree/main/TeamCode/src/main/java/org/firstinspires/ftc/teamcode)
+
+---
+
+*The sections below are FIRST's original SDK documentation, retained for reference.*
+
 ## NOTICE
 
 This repository contains the public FTC SDK for the CENTERSTAGE (2023-2024) competition season.
